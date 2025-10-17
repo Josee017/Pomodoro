@@ -1,1192 +1,222 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App de Productividad y Pizarra Local</title>
-    <!-- Incluye Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-    
-    <script type="module">
-        // --- El setup de Firebase y Auth ha sido ELIMINADO según tu solicitud ---
-        // La aplicación ahora funciona solo con estado local y DOM para la pizarra.
-    </script>
-    
+    <title>Mi Portafolio - Jose Hurtado</title>
     <style>
-        /* 1. Variables CSS para personalización de color */
+        /* ESTILOS CSS INCLUIDOS EN EL MISMO ARCHIVO */
         :root {
-            /* Colores primarios (Gris Carbón como neutro) */
-            --primary-color: #333333;      
-            --primary-hover-color: #1a1a1a; 
-            --primary-shadow: #aaaaaa;     
-
-            /* Variables de Fondo (Ajustadas por JS al cambiar el modo) */
-            --bg-color: #f0f4f8;       
-            --card-bg-color: #ffffff;  
-            --secondary-bg: #f3f4f6;   
-            --line-v-color: #fca5a5;   
-            --line-h-color: #d1d5db;   
-            --text-color: #1f2937;     
-            
-            /* NUEVO: Variables para el botón REINICIAR */
-            --secondary-button-bg: #e5e7eb; /* Gris claro por defecto (light) */
-            --secondary-button-text: #1f2937; /* Gris oscuro por defecto */
-
-            /* Pizarra de Tiza (Verde) */
-            --cork-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg opacity='1'%3E%3Cpath fill='%23386641' d='M0 0h100v100H0z'/%3E%3Cpath fill='%236a994e' d='M0 0h100v2H0zM0 98h100v2H0zM0 0v100h2V0zM98 0v100h2V0z'/%3E%3C/g%3E%3C/svg%3E");
-            --chalkboard-base-color: #4a755d; 
+            --primary-color: #3498db; /* Azul profesional */
+            --secondary-color: #2c3e50; /* Azul oscuro */
+            --light-bg: #ecf0f1; /* Fondo claro */
+            --text-color: #333;
         }
-        
-        /* 2. Estilos de fondo: Cuadricula de Cuaderno (DEFAULT: CLARO) */
+
         body {
-            background-color: var(--bg-color); 
-            /* Simulación de líneas de cuaderno */
-            background-image: 
-                /* Línea vertical roja (Margen) */
-                linear-gradient(to right, var(--line-v-color) 1px, transparent 1px), 
-                /* Líneas horizontales grises */
-                repeating-linear-gradient(to bottom, transparent, transparent 19px, var(--line-h-color) 1px, var(--line-h-color) 20px); 
-            background-size: 20px 20px, 100% 20px;
-            background-position: 20px 0, 0 0; 
-            font-family: 'Inter', sans-serif;
-            color: var(--text-color); /* Aplicar color de texto base */
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            line-height: 1.6;
         }
 
-        /* 3. Estilo para simular el borde "dibujado con boli" en el contenedor principal */
-        #app-wrapper {
-            position: relative;
-            background-color: var(--card-bg-color); 
-            border-radius: 1rem;
-            box-shadow: 
-                5px 5px 0 0 #333,       
-                10px 10px 0 0 #666;     
-            transform: translate(-5px, -5px); 
-            color: var(--text-color); 
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
         }
 
-        /* Aplicación del color primario mediante variables */
-        .btn-primary {
-            background-color: var(--primary-color) !important;
-            color: white !important; /* <--- ESTE `!important` CAUSABA EL CONFLICTO */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1), 0 8px 15px -3px var(--primary-shadow) !important;
-        }
-        .btn-primary:hover {
-            background-color: var(--primary-hover-color) !important;
-            color: white !important; /* FIX: Asegura texto visible en hover */
-        }
-        
-        /* NUEVO: Estilo para el botón de Reiniciar */
-        .btn-secondary-mode {
-            background-color: var(--secondary-button-bg) !important;
-            color: var(--secondary-button-text) !important;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1) !important;
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
         }
 
-        .text-primary {
-            color: var(--primary-color) !important;
-        }
-        .ring-primary:focus {
-            --tw-ring-color: var(--primary-color) !important;
-        }
-        
-        /* Nuevo estilo para fondos internos (Ej: Selector Pomodoro, Display de Tiempo) */
-        .bg-secondary {
-            background-color: var(--secondary-bg) !important;
+        nav a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
         }
 
-        /* Estilos de módulos internos (más limpios) */
-        .module-card {
-            background-color: var(--card-bg-color); 
-            border: 1px solid rgba(0, 0, 0, 0.1); 
-            transition: all 0.3s ease;
+        nav a:hover {
+            color: var(--primary-color);
         }
-        
-        /* --- ESTILOS PARA LOS SELECTORES DE COLOR (POSIT) - INICIO --- */
-        .color-yellow { background-color: #fef08a; } /* Amarillo */
-        .color-pink { background-color: #fbb6ce; } /* Rosa */
-        .color-blue { background-color: #bfdbfe; } /* Azul */
-        .color-green { background-color: #bbf7d0; } /* Verde */
-        /* --- ESTILOS PARA LOS SELECTORES DE COLOR (POSIT) - FIN --- */
 
-        /* --- ESTILOS DE PIZARRA DE TIZA --- */
-        #chalkboard-container {
-            background-color: var(--chalkboard-base-color); 
-            background-image: var(--cork-texture);
-            background-size: 100px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.4);
+        section {
+            padding: 40px 20px;
+            max-width: 1000px;
+            margin: 0 auto;
         }
-        .sticky-note {
-            position: absolute;
+
+        .about {
+            text-align: center;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+
+        .about img {
             width: 150px;
-            min-height: 150px;
-            padding: 1rem;
-            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.4); 
-            cursor: grab;
-            transition: box-shadow 0.1s;
-            border-radius: 0.5rem;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-            border: 2px solid rgba(0, 0, 0, 0.1);
-            font-size: 0.95rem;
-            line-height: 1.3;
-        }
-        .sticky-note:active {
-            cursor: grabbing;
-            box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.6);
-            z-index: 1000; 
-        }
-        /* ... Estilos de notas adhesivas (no modificados) ... */
-
-        /* Estilos para los botones inactivos del Pomodoro */
-        .pomodoro-inactive-light {
-            background-color: var(--secondary-bg) !important;
-            color: #4b5563 !important; 
-            box-shadow: none !important;
-        }
-        .pomodoro-inactive-light:hover {
-            background-color: #e5e7eb !important; 
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 4px solid var(--primary-color);
         }
 
-        .pomodoro-inactive-dark {
-            background-color: var(--secondary-bg) !important;
-            color: #9ca3af !important; 
-            box-shadow: none !important;
-        }
-        .pomodoro-inactive-dark:hover {
-            background-color: #1f2937 !important; 
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+            text-align: center;
         }
 
-        /* Estilos específicos para el gráfico semanal */
-        #weekly-chart-container {
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px dashed var(--line-h-color); 
+        /* Proyectos */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
         }
-        .chart-bar {
-            background-color: var(--primary-color);
-            transition: height 0.5s ease-out;
-            border-radius: 4px 4px 0 0;
-            width: 100%;
+
+        .project-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s;
         }
-        .chart-day {
+
+        .project-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .project-card h3 {
+            color: var(--secondary-color);
+            padding: 15px;
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .project-card p {
+            padding: 0 15px 15px;
+            margin: 0;
+        }
+
+        .project-card .links {
+            padding: 15px;
+            background-color: var(--light-bg);
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100%;
-            position: relative;
+            justify-content: space-around;
+        }
+
+        .project-card .links a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        /* Contacto */
+        .contact form {
+            display: grid;
+            gap: 15px;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .contact input[type="text"],
+        .contact input[type="email"],
+        .contact textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .contact button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 1rem;
+        }
+
+        .contact button:hover {
+            background-color: #2980b9;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            margin-top: 40px;
         }
     </style>
 </head>
-<body class="flex justify-center items-center min-h-screen p-4">
+<body>
 
-    <!-- Contenedor principal con el estilo "dibujado con boli". Ya NO usa bg-white -->
-    <div id="app-wrapper" class="p-6 md:p-10 rounded-xl shadow-2xl w-full max-w-6xl transition-all duration-300">
-        
-        <!-- Header / Menús Desplegables -->
-        <header class="mb-8 pb-4 flex flex-wrap justify-between items-center border-b border-gray-200">
-            <h1 class="text-2xl font-black text-gray-800 flex items-center" id="main-title">
-                App de Productividad
-            </h1>
-            <nav class="flex space-x-2 relative">
-                <!-- 1. Movimiento Menu -->
-                <div class="relative inline-block text-left" id="menu-movimiento">
-                    <button type="button" class="menu-toggle inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 ring-primary" data-menu="movimiento">
-                        Movimiento
-                    </button>
-                    <!-- Contenido Dropdown (Oculto por defecto) -->
-                    <div class="dropdown-content origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-20">
-                        <div class="py-1">
-                            <button class="text-gray-700 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" id="btn-swap-modules">Cambiar Posición Módulos</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 2. Colores Menu (Funcional: Ahora incluye Fondo y Semi-fondo) -->
-                <div class="relative inline-block text-left" id="menu-colores">
-                    <button type="button" class="menu-toggle inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 ring-primary" data-menu="colores">
-                        Colores
-                    </button>
-                    <div class="dropdown-content origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-20">
-                        <div class="py-1">
-                            <!-- Opciones de Color Principal -->
-                            <p class="text-xs text-gray-500 px-4 pt-1 pb-2 font-semibold">Color Principal</p>
-                            <button data-type="primary" data-color="#333333" data-shadow="#aaaaaa" data-hover="#1a1a1a" class="color-option block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">⚫ Gris Neutro</button>
-                            <button data-type="primary" data-color="#ef4444" data-shadow="#fca5a5" data-hover="#dc2626" class="color-option block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">🔴 Rojo</button>
-                            <button data-type="primary" data-color="#10b981" data-shadow="#6ee7b7" data-hover="#059669" class="color-option block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">🟢 Verde</button>
-                            <button data-type="primary" data-color="#8b5cf6" data-shadow="#d8b4fe" data-hover="#7c3aed" class="color-option block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">🟣 Morado</button>
-                            
-                            <div class="border-t border-gray-200 my-1"></div>
-                            
-                            <!-- Opciones de Fondo -->
-                            <p class="text-xs text-gray-500 px-4 pt-1 pb-2 font-semibold">Fondo</p>
-                            <button data-type="background" data-bg="light" class="color-option block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">⚪ Claro (Líneas rojas)</button>
-                            <button data-type="background" data-bg="cream" class="color-option block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">🟡 Crema (Cuaderno)</button>
-                            <button data-type="background" data-bg="dark" class="color-option block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">⚫ Oscuro (Dark Mode)</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3. Idiomas Menu -->
-                <div class="relative inline-block text-left" id="menu-idiomas">
-                    <button type="button" class="menu-toggle inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 ring-primary" data-menu="idiomas">
-                        Idiomas
-                    </button>
-                    <div class="dropdown-content origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-20">
-                        <div class="py-1">
-                            <button data-lang="es" class="lang-option text-gray-700 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Español (ES)</button>
-                            <button data-lang="en" class="lang-option block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">English (EN)</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 4. Ajustes de Reloj Menu -->
-                <div class="relative inline-block text-left" id="menu-ajustes">
-                    <button type="button" class="menu-toggle inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 ring-primary" data-menu="ajustes">
-                        Ajustes Reloj
-                    </button>
-                    <div class="dropdown-content origin-top-right absolute right-0 mt-2 w-64 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-20">
-                        <div class="p-4 space-y-3">
-                            <h4 class="text-sm font-bold text-gray-700">Duración de Ciclos (min)</h4>
-                            
-                            <div class="flex items-center justify-between">
-                                <label for="input-trabajo" class="text-sm text-gray-600 w-1/3">Trabajo:</label>
-                                <input type="number" id="input-trabajo" value="25" min="1" class="w-2/3 p-2 border border-gray-300 rounded-md text-sm focus:ring-2 ring-primary focus:border-transparent">
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <label for="input-corta" class="text-sm text-gray-600 w-1/3">Pausa Corta:</label>
-                                <input type="number" id="input-corta" value="5" min="1" class="w-2/3 p-2 border border-gray-300 rounded-md text-sm focus:ring-2 ring-primary focus:border-transparent">
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <label for="input-larga" class="text-sm text-gray-600 w-1/3">Pausa Larga:</label>
-                                <input type="number" id="input-larga" value="15" min="1" class="w-2/3 p-2 border border-gray-300 rounded-md text-sm focus:ring-2 ring-primary focus:border-transparent">
-                            </div>
-
-                            <button id="btn-aplicar-ajustes" class="btn-primary w-full py-2 rounded-md text-white font-semibold text-sm mt-3">Aplicar y Reiniciar</button>
-                        </div>
-                    </div>
-                </div>
+    <header>
+        <div class="container">
+            <h1>Jose Luis Hurtado Perez</h1>
+            <nav>
+                <a href="#about">Sobre Mí</a>
+                <a href="#projects">Proyectos</a>              
+                <a href="https://github.com/Josee017" target="_blank">GitHub</a>
             </nav>
-        </header>
-
-
-        <!-- Contenedor principal para centrar los módulos. -->
-        <div class="flex flex-col lg:flex-row gap-8 w-full" id="modules-container">
-
-            <!-- Módulo del Temporizador (Pomodoro) - Izquierda -->
-            <div id="pomodoro-timer" class="module-card p-6 rounded-xl shadow-xl w-full lg:w-1/2">
-                
-                <!-- Selectores de Modo -->
-                <div class="flex bg-secondary rounded-full p-1 mb-6 shadow-inner">
-                    <button class="flex-1 py-2 rounded-full bg-secondary text-gray-700 hover:bg-gray-200 font-semibold text-sm transition duration-300" id="modo-trabajo">Trabajo</button>
-                    <button class="flex-1 py-2 rounded-full bg-secondary text-gray-700 hover:bg-gray-200 font-semibold text-sm transition duration-300" id="modo-corta">Pausa Corta</button>
-                    <button class="flex-1 py-2 rounded-full bg-secondary text-gray-700 hover:bg-gray-200 font-semibold text-sm transition duration-300" id="modo-larga">Pausa Larga</button>
-                </div>
-
-                <!-- Visualización del Tiempo -->
-                <div class="bg-secondary p-8 rounded-xl text-center mb-6 shadow-inner">
-                    <div class="text-7xl font-mono font-extrabold" id="tiempo-display">25:00</div>
-                </div>
-
-                <h2 class="text-xl font-bold text-center mb-4 uppercase text-gray-700 tracking-wider" id="modo-titulo">MODO TRABAJO</h2>
-
-                <!-- Estadísticas del Ciclo -->
-                <p class="text-center text-sm mb-6 text-gray-600">
-                    Ciclos de trabajo completados: <span id="ciclos-completados" class="font-bold text-primary">0</span> | Próxima pausa larga en: <span id="ciclos-restantes" class="font-bold text-red-500">4</span> ciclos
-                </p>
-
-                <!-- Botones de Control -->
-                <div class="flex gap-4 mb-4">
-                    <button class="flex-1 py-3 rounded-lg text-white font-bold transition duration-300 btn-primary" id="btn-iniciar">INICIAR</button>
-                    <!-- CAMBIO AQUÍ: Usamos la nueva clase dinámica -->
-                    <button class="flex-1 py-3 rounded-lg font-bold transition duration-300 btn-secondary-mode" id="btn-reiniciar">REINICIAR</button>
-                    <button class="flex-1 py-3 rounded-lg bg-red-500 text-white font-bold hover:bg-red-600 transition duration-300 shadow-lg shadow-red-300/50" id="btn-saltar">SALTAR CICLO</button>
-                </div>
-
-                <!-- NUEVA SECCIÓN: Gráfico de Progreso Semanal -->
-                <div id="weekly-chart-container" class="bg-secondary p-4 rounded-lg shadow-inner">
-                    <h3 class="text-sm font-bold mb-3 text-gray-700 uppercase tracking-wider text-center" id="chart-title">Pomodoros Semanales</h3>
-                    <div id="weekly-chart" class="flex justify-between items-end h-28 space-x-1">
-                        <!-- Las barras se generarán aquí por JavaScript -->
-                    </div>
-                </div>
-                
-            </div>
-
-            <!-- Módulo de Pizarra y Tareas - Derecha -->
-            <div id="task-manager" class="module-card p-6 rounded-xl shadow-xl w-full lg:w-1/2 flex flex-col">
-                
-                <!-- Encabezado de la Tarea -->
-                <h2 class="text-xl font-bold mb-4 text-gray-700 flex items-center">
-                    <span class="mr-2 text-2xl">📝</span> <span id="task-header-text">Añadir Tarea (Posit Local)</span>
-                </h2>
-
-                <!-- Formulario de Tarea (TEXTAREA y Selector de Color) -->
-                <div id="task-input-container" class="bg-secondary p-4 rounded-lg shadow-inner mb-4 flex-shrink-0">
-                    <textarea id="task-input" rows="3" class="w-full p-2 mb-3 rounded-lg bg-white text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 ring-primary" placeholder="Escribe tu tarea o nota aquí..."></textarea>
-                    
-                    <div class="flex flex-col sm:flex-row items-center justify-between">
-                        <div id="color-selector" class="flex space-x-2 mb-3 sm:mb-0">
-                            <!-- Los botones tienen las nuevas clases CSS que definen el color -->
-                            <button data-color="yellow" class="w-6 h-6 rounded-full color-yellow border-2 border-transparent focus:border-gray-500 transition"></button>
-                            <button data-color="pink" class="w-6 h-6 rounded-full color-pink border-2 border-transparent focus:border-gray-500 transition"></button>
-                            <button data-color="blue" class="w-6 h-6 rounded-full color-blue border-2 border-transparent focus:border-gray-500 transition"></button>
-                            <button data-color="green" class="w-6 h-6 rounded-full color-green border-2 border-transparent focus:border-gray-500 transition"></button>
-                        </div>
-                        <button class="py-2 px-4 rounded-lg text-white font-bold transition duration-300 btn-primary w-full sm:w-auto" id="add-task-btn">Añadir Posit</button>
-                    </div>
-                </div>
-                
-                <!-- Contenedor de la Pizarra de Tiza (Flexible para crecer) -->
-                <div id="chalkboard-container" class="flex-grow rounded-lg p-4 relative min-h-[300px]">
-                    <p class="absolute inset-0 flex items-center justify-center text-gray-400 text-opacity-70 font-semibold text-lg" id="placeholder-text">Arrastra y suelta notas adhesivas aquí...</p>
-                </div>
-            </div>
         </div>
-    </div>
+    </header>
 
-    <!-- Script Completo de la App (IIFE para encapsular variables) -->
+    <section id="about" class="about">
+        <h2>👋 Sobre Mí</h2>      
+        <p></p>
+        <p></p>
+    </section>
+
+    <section id="projects">
+        <h2>💡 Proyectos Destacados</h2>
+        <div class="projects-grid">
+            
+            <article class="project-card">
+                <h3>Proyecto 1: Pomodoro</h3>
+                <p>Tecnica de estudio y mejora de concentracion</p>
+                <p>Tecnologías: HTML5, CSS Grid, Vanilla JS.</p>
+                <div class="links">
+                    <a href="https://github.com/Josee017/Pomodoro/" target="_blank">Ver Demo</a>
+                    <a href="https://github.com/Josee017/Pomodoro/blob/main/pomodoro.html" target="_blank">Código Fuente</a>
+                    <a href="https://github.com/Josee017/Pomodoro/blob/main/Proceso%20de%20Desarrollo%20(Pomodoro).pdf" target ="_blank">Proceso</a>
+                </div>
+            </article>
+        </div>
+    </section>
+    <footer>
+        <p>&copy; Jose Luis Hurtado Perez</p>
+    </footer>
+
     <script>
-        (function () {
-            // --- 1. VARIABLES GLOBALES Y CONFIGURACIONES ---
-
-            // Configuraciones de Fondo (Nuevas Opciones)
-            const backgroundConfig = {
-                light: {
-                    bg: '#f0f4f8',
-                    lineV: '#fca5a5',
-                    lineH: '#d1d5db',
-                    cardBg: '#ffffff',
-                    secondaryBg: '#f3f4f6',
-                    text: '#1f2937',
-                    secondaryBtnBg: '#e5e7eb',
-                    secondaryBtnText: '#1f2937',
-                    title: 'text-gray-800',
-                    inactive_class: 'pomodoro-inactive-light',
-                    name: 'Claro'
-                },
-                cream: {
-                    bg: '#fdf6e3',
-                    lineV: '#d97706',
-                    lineH: '#d1d5db',
-                    cardBg: '#ffffff',
-                    secondaryBg: '#f3f4f6',
-                    text: '#1f2937',
-                    secondaryBtnBg: '#e5e7eb',
-                    secondaryBtnText: '#1f2937',
-                    title: 'text-gray-800',
-                    inactive_class: 'pomodoro-inactive-light',
-                    name: 'Crema'
-                },
-                dark: {
-                    bg: '#1a202c',
-                    lineV: '#9b2c2c',
-                    lineH: '#4a5568',
-                    cardBg: '#2d3748',
-                    secondaryBg: '#4a5568',
-                    text: '#e2e8f0',
-                    secondaryBtnBg: '#4a5568',
-                    secondaryBtnText: '#e2e8f0',
-                    title: 'text-gray-300',
-                    inactive_class: 'pomodoro-inactive-dark',
-                    name: 'Oscuro'
-                }
-            };
-
-            let currentBgTheme = 'light';
-
-            // Traducciones
-            const translations = {
-                es: {
-                    title: 'App de Productividad',
-                    mode_trabajo: 'Trabajo',
-                    mode_corta: 'Pausa Corta',
-                    mode_larga: 'Pausa Larga',
-                    btn_iniciar: 'INICIAR',
-                    btn_reanudar: 'REANUDAR',
-                    btn_pausar: 'PAUSAR',
-                    btn_reiniciar: 'REINICIAR',
-                    btn_saltar: 'SALTAR CICLO',
-                    stats_prefix: 'Ciclos de trabajo completados:',
-                    stats_suffix: 'Próxima pausa larga en:',
-                    task_header: 'Añadir Tarea (Posit Local)',
-                    task_input_placeholder: 'Escribe tu tarea o nota aquí...',
-                    task_board_placeholder: 'Arrastra y suelta notas adhesivas aquí...',
-                    menu_movimiento: 'Movimiento',
-                    menu_swap: 'Cambiar Posición Módulos',
-                    menu_colores: 'Colores',
-                    menu_idiomas: 'Idiomas',
-                    menu_ajustes: 'Ajustes Reloj',
-                    msg_task_added: 'Nota añadida con éxito.',
-                    msg_task_error: 'Por favor, escribe algo antes de añadir.',
-                    msg_lang_changed: 'Idioma cambiado correctamente.',
-                    msg_color_changed: 'Color principal cambiado a [COLOR].',
-                    msg_background_changed: 'Fondo cambiado a [COLOR].',
-                    msg_settings_applied: 'Ajustes aplicados y temporizador reiniciado.',
-                    msg_cycle_restarted: 'Ciclo reiniciado.',
-                    msg_cycle_skipped: 'Ciclo saltado.',
-                    msg_swap: 'Módulos movidos a [POSICION].',
-                    pos_left: 'izquierda',
-                    pos_right: 'derecha',
-                    mode_trabajo_title: 'MODO TRABAJO',
-                    mode_corta_title: 'MODO PAUSA CORTA',
-                    mode_larga_title: 'MODO PAUSA LARGA',
-                    chart_title: 'Pomodoros Semanales',
-                    dias_semana: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
-                },
-                en: {
-                    title: 'Productivity App',
-                    mode_trabajo: 'Work',
-                    mode_corta: 'Short Break',
-                    mode_larga: 'Long Break',
-                    btn_iniciar: 'START',
-                    btn_reanudar: 'RESUME',
-                    btn_pausar: 'PAUSE',
-                    btn_reiniciar: 'RESET',
-                    btn_saltar: 'SKIP CYCLE',
-                    stats_prefix: 'Completed work cycles:',
-                    stats_suffix: 'Next long break in:',
-                    task_header: 'Add Task (Local Sticky)',
-                    task_input_placeholder: 'Write your task or note here...',
-                    task_board_placeholder: 'Drag and drop sticky notes here...',
-                    menu_movimiento: 'Movement',
-                    menu_swap: 'Swap Module Positions',
-                    menu_colores: 'Colors',
-                    menu_idiomas: 'Languages',
-                    menu_ajustes: 'Clock Settings',
-                    msg_task_added: 'Note added successfully.',
-                    msg_task_error: 'Please write something before adding.',
-                    msg_lang_changed: 'Language changed successfully.',
-                    msg_color_changed: 'Primary color changed to [COLOR].',
-                    msg_background_changed: 'Background changed to [COLOR].',
-                    msg_settings_applied: 'Settings applied and timer reset.',
-                    msg_cycle_restarted: 'Cycle restarted.',
-                    msg_cycle_skipped: 'Cycle skipped.',
-                    msg_swap: 'Modules moved to [POSITION].',
-                    pos_left: 'left',
-                    pos_right: 'right',
-                    mode_trabajo_title: 'WORK MODE',
-                    mode_corta_title: 'SHORT BREAK MODE',
-                    mode_larga_title: 'LONG BREAK MODE',
-                    chart_title: 'Weekly Pomodoros',
-                    dias_semana: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-                }
-            };
-
-            let currentLang = 'es';
-            let T = translations[currentLang];
-
-            // Elementos DOM
-            const mainTitle = document.getElementById('main-title');
-            const modulesContainer = document.getElementById('modules-container');
-            const modoTrabajoBtn = document.getElementById('modo-trabajo');
-            const modoCortaBtn = document.getElementById('modo-corta');
-            const modoLargaBtn = document.getElementById('modo-larga');
-            const tiempoDisplay = document.getElementById('tiempo-display');
-            const titulo = document.getElementById('modo-titulo');
-            const ciclosCompletados = document.getElementById('ciclos-completados');
-            const ciclosRestantes = document.getElementById('ciclos-restantes');
-            const btnIniciar = document.getElementById('btn-iniciar');
-            const taskInput = document.getElementById('task-input');
-            const colorSelector = document.getElementById('color-selector');
-            const addTaskBtn = document.getElementById('add-task-btn');
-            const chalkboardContainer = document.getElementById('chalkboard-container');
-            const placeholderText = document.getElementById('placeholder-text');
-            const taskInputContainer = document.getElementById('task-input-container');
-            const menuButtons = document.querySelectorAll('.menu-toggle');
-            const colorOptions = document.querySelectorAll('.color-option');
-            const langOptions = document.querySelectorAll('.lang-option');
-            const weeklyChart = document.getElementById('weekly-chart');
-            const chartTitle = document.getElementById('chart-title');
-
-            // Variables de Estado para Pomodoro
-            let modoActual = 'trabajo';
-            let tiempoRestante = 25 * 60;
-            let estaCorriendo = false;
-            let intervalo;
-            let ciclosTrabajo = 0;
-            let ciclosHastaLarga = 4;
-            let tiempos = {
-                trabajo: 25 * 60,
-                corta: 5 * 60,
-                larga: 15 * 60
-            };
-            
-            // NUEVO: Almacenamiento y gestión de Pomodoros semanales (local)
-            const STORAGE_KEY_CYCLES = 'pomodoroCycles';
-            const STORAGE_KEY_DAILY = 'dailyPomodoros';
-
-            let dailyPomodoros = {}; // { 'YYYY-MM-DD': count }
-            let weeklyPomodoros = [0, 0, 0, 0, 0, 0, 0]; // Lunes a Domingo
-
-            // Variables de Estado para Pizarra
-            let localNotes = [];
-            let selectedColor = 'yellow';
-            let activeNote = null;
-            let isDragging = false;
-            let xOffset = 0;
-            let yOffset = 0;
-
-
-            // --- 2. FUNCIONES DEL TEMPORIZADOR ---
-
-            function cargarEstado() {
-                try {
-                    // Cargar Ciclos Totales
-                    const savedCycles = localStorage.getItem(STORAGE_KEY_CYCLES);
-                    if (savedCycles) {
-                        ciclosTrabajo = parseInt(savedCycles, 10);
-                        ciclosCompletados.textContent = ciclosTrabajo;
-                        // Recalcular ciclos hasta la pausa larga
-                        ciclosHastaLarga = 4 - (ciclosTrabajo % 4);
-                        ciclosRestantes.textContent = ciclosHastaLarga;
-                    }
-                    
-                    // Cargar Pomodoros Diarios
-                    const savedDaily = localStorage.getItem(STORAGE_KEY_DAILY);
-                    if (savedDaily) {
-                        dailyPomodoros = JSON.parse(savedDaily);
-                    }
-                    
-                } catch (e) {
-                    console.error("Error cargando estado de localStorage:", e);
-                }
-            }
-
-            function guardarEstado() {
-                try {
-                    localStorage.setItem(STORAGE_KEY_CYCLES, ciclosTrabajo);
-                    localStorage.setItem(STORAGE_KEY_DAILY, JSON.stringify(dailyPomodoros));
-                } catch (e) {
-                    console.error("Error guardando estado en localStorage:", e);
-                }
-            }
-
-            function actualizarDisplay() {
-                const minutos = Math.floor(tiempoRestante / 60);
-                const segundos = tiempoRestante % 60;
-                tiempoDisplay.textContent = `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
-            }
-
-            function iniciarTemporizador() {
-                if (estaCorriendo) {
-                    clearInterval(intervalo);
-                    btnIniciar.textContent = T.btn_reanudar;
-                    estaCorriendo = false;
-                } else {
-                    intervalo = setInterval(() => {
-                        if (tiempoRestante > 0) {
-                            tiempoRestante--;
-                            actualizarDisplay();
-                        } else {
-                            clearInterval(intervalo);
-                            estaCorriendo = false;
-                            completarCiclo();
-                        }
-                    }, 1000);
-                    btnIniciar.textContent = T.btn_pausar;
-                    estaCorriendo = true;
-                }
-            }
-
-            function completarCiclo() {
-                if (modoActual === 'trabajo') {
-                    // 1. Actualizar Contadores de Ciclos
-                    ciclosTrabajo++;
-                    ciclosCompletados.textContent = ciclosTrabajo;
-                    ciclosHastaLarga--;
-                    ciclosRestantes.textContent = ciclosHastaLarga;
-
-                    // 2. Registrar Pomodoro en el día actual
-                    registrarPomodoroCompletado();
-
-                    // 3. Guardar estado
-                    guardarEstado();
-
-                    // 4. Determinar siguiente modo
-                    if (ciclosHastaLarga <= 0) {
-                        cambiarModo('larga');
-                        ciclosHastaLarga = 4;
-                    } else {
-                        cambiarModo('corta');
-                    }
-                } else if (modoActual === 'corta' || modoActual === 'larga') {
-                    cambiarModo('trabajo');
-                }
-            }
-
-            function cambiarModo(nuevoModo) {
-                clearInterval(intervalo);
-                estaCorriendo = false;
-                modoActual = nuevoModo;
-                tiempoRestante = tiempos[nuevoModo];
-                actualizarDisplay();
-
-                // 1. Resetear todos los botones de modo a inactivos
-                [modoTrabajoBtn, modoCortaBtn, modoLargaBtn].forEach(btn => {
-                    // Eliminar clases de estado (btn-primary, shadow-md) y clases de inactivo de cualquier tema
-                    btn.classList.remove('btn-primary', 'shadow-md');
-                    btn.classList.remove(backgroundConfig.light.inactive_class, backgroundConfig.dark.inactive_class);
-                    
-                    // Aplicar la clase de inactivo del tema actual
-                    btn.classList.add(backgroundConfig[currentBgTheme].inactive_class);
-                    
-                    // Asegurar que no quedan estilos inline de la iteración anterior
-                    btn.style.color = ''; 
-                    btn.style.backgroundColor = ''; 
-                });
-
-                let btnActivo;
-                if (nuevoModo === 'trabajo') btnActivo = modoTrabajoBtn;
-                else if (nuevoModo === 'corta') btnActivo = modoCortaBtn;
-                else btnActivo = modoLargaBtn;
-
-                // 2. Aplicar estilos al botón activo
-                btnActivo.classList.remove(backgroundConfig[currentBgTheme].inactive_class);
-                
-                // Aplicar estilos de activo manualmente (fondo de la tarjeta principal, color de texto del tema y sombra)
-                btnActivo.style.backgroundColor = backgroundConfig[currentBgTheme].cardBg;
-                btnActivo.style.color = backgroundConfig[currentBgTheme].text; 
-                btnActivo.classList.add('shadow-md'); 
-
-                // Actualizar título y botón iniciar
-                const modeKey = `mode_${nuevoModo}_title`;
-                titulo.textContent = T[modeKey.replace('-', '_')];
-                btnIniciar.textContent = T.btn_iniciar;
-            }
-
-            // --- 3. FUNCIONES DE REGISTRO Y GRÁFICO SEMANAL ---
-
-            function getFechaHoy() {
-                const now = new Date();
-                const year = now.getFullYear();
-                const month = String(now.getMonth() + 1).padStart(2, '0');
-                const day = String(now.getDate()).padStart(2, '0');
-                return `${year}-${month}-${day}`;
-            }
-
-            function getDiaSemana(date) {
-                const day = date.getDay(); 
-                // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
-                // Queremos 0 = Lunes, 6 = Domingo.
-                return day === 0 ? 6 : day - 1; 
-            }
-
-            function registrarPomodoroCompletado() {
-                const hoy = getFechaHoy();
-                dailyPomodoros[hoy] = (dailyPomodoros[hoy] || 0) + 1;
-                procesarDatosSemanales();
-            }
-
-            function procesarDatosSemanales() {
-                const days = T.dias_semana.length;
-                weeklyPomodoros = new Array(days).fill(0);
-                
-                const today = new Date();
-                const todayIndex = getDiaSemana(today); // 0 (Lun) a 6 (Dom)
-                
-                // Calcular la fecha del lunes de esta semana (inicio de la semana)
-                const date = new Date(today);
-                date.setDate(today.getDate() - todayIndex); 
-
-                for (let i = 0; i < days; i++) {
-                    const currentDay = new Date(date);
-                    currentDay.setDate(date.getDate() + i);
-                    
-                    const dateString = currentDay.toISOString().split('T')[0];
-                    
-                    if (dailyPomodoros[dateString]) {
-                        weeklyPomodoros[i] = dailyPomodoros[dateString];
-                    }
-                }
-                
-                renderizarGraficoSemanal();
-            }
-
-            function renderizarGraficoSemanal() {
-                weeklyChart.innerHTML = '';
-                const maxPomodoros = Math.max(...weeklyPomodoros, 1); // Maximo es al menos 1 para evitar división por cero
-                const dias = T.dias_semana;
-                const todayIndex = getDiaSemana(new Date());
-
-                weeklyPomodoros.forEach((count, index) => {
-                    const heightPercent = (count / maxPomodoros) * 100;
-                    const isToday = index === todayIndex;
-
-                    const dayContainer = document.createElement('div');
-                    dayContainer.classList.add('chart-day', 'flex-1', 'mx-0.5', 'relative');
-                    
-                    const bar = document.createElement('div');
-                    bar.classList.add('chart-bar');
-                    bar.style.height = `${Math.max(2, heightPercent)}%`; // Altura mínima de 2% para visibilidad
-
-                    // Tooltip (muestra el número)
-                    const tooltip = document.createElement('span');
-                    tooltip.classList.add('absolute', '-top-5', 'text-xs', 'font-semibold');
-                    tooltip.textContent = count;
-                    tooltip.style.color = 'var(--text-color)'; 
-
-                    // Etiqueta del día
-                    const label = document.createElement('span');
-                    label.classList.add('text-xs', 'mt-1', 'font-semibold');
-                    label.textContent = dias[index];
-                    label.style.color = isToday ? 'var(--primary-color)' : 'var(--text-color)';
-                    
-                    // La barra va primero para que los labels estén abajo
-                    dayContainer.appendChild(bar);
-                    dayContainer.appendChild(tooltip);
-                    dayContainer.appendChild(label);
-
-                    weeklyChart.appendChild(dayContainer);
-                });
-            }
-
-
-            // --- 4. FUNCIONES DE MENSAJES ---
-
-            function mostrarMensaje(mensaje, tipo = 'info') {
-                console.log(`[${tipo.toUpperCase()}] ${mensaje}`); // Placeholder para mensajes (puedes agregar un toast real)
-            }
-
-            // --- 5. FUNCIONES DE PIZARRA LOCAL ---
-            // (La lógica de Pizarra permanece sin cambios)
-
-            function createNoteElement(note) {
-                const noteDiv = document.createElement('div');
-                noteDiv.classList.add('sticky-note');
-                noteDiv.dataset.id = note.id;
-                noteDiv.style.left = `${note.x}px`;
-                noteDiv.style.top = `${note.y}px`;
-                noteDiv.style.backgroundColor = getNoteColor(note.color);
-                noteDiv.style.color = '#1f2937'; // Texto oscuro por defecto
-
-                const contentP = document.createElement('p');
-                contentP.textContent = note.content;
-                noteDiv.appendChild(contentP);
-
-                const deleteBtn = document.createElement('button');
-                deleteBtn.textContent = 'X';
-                // Añadir un identificador para no arrastrar desde el botón de borrar
-                deleteBtn.classList.add('delete-btn', 'absolute', 'top-1', 'right-1', 'text-red-500', 'font-bold'); 
-                deleteBtn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Evitar que el clic active el arrastre del padre
-                    deleteNote(note.id);
-                });
-                noteDiv.appendChild(deleteBtn);
-
-                noteDiv.addEventListener('mousedown', dragStart);
-                noteDiv.addEventListener('touchstart', dragStart, { passive: true }); // passive: true para scroll en móvil
-
-                return noteDiv;
-            }
-
-            function getNoteColor(color) {
-                const colors = {
-                    yellow: '#fef08a',
-                    pink: '#fbb6ce',
-                    blue: '#bfdbfe',
-                    green: '#bbf7d0'
-                };
-                return colors[color] || colors.yellow;
-            }
-
-            function renderNotes() {
-                chalkboardContainer.innerHTML = '';
-                
-                if (localNotes.length > 0) {
-                    placeholderText.classList.add('hidden');
-                } else {
-                    chalkboardContainer.appendChild(placeholderText); 
-                    placeholderText.classList.remove('hidden');
-                }
-                
-                localNotes.forEach(note => {
-                    const noteElement = createNoteElement(note);
-                    chalkboardContainer.appendChild(noteElement);
-                });
-            }
-
-            function addNewNote(content, color) {
-                const containerWidth = chalkboardContainer.offsetWidth;
-                const containerHeight = chalkboardContainer.offsetHeight;
-                const noteSize = 150; 
-
-                // Posiciona la nota en el centro de la pizarra
-                const x = Math.max(20, Math.floor((containerWidth / 2) - (noteSize / 2)));
-                const y = Math.max(20, Math.floor((containerHeight / 2) - (noteSize / 2)));
-
-                const newNote = {
-                    id: Date.now().toString() + Math.random().toString(16).slice(2), 
-                    content: content,
-                    color: color,
-                    x: x,
-                    y: y,
-                };
-
-                localNotes.push(newNote);
-                renderNotes(); 
-                taskInput.value = '';
-                mostrarMensaje(T.msg_task_added, 'success');
-            }
-
-            function updateNotePosition(id, x, y) {
-                const noteIndex = localNotes.findIndex(n => n.id !== id);
-                if (noteIndex > -1) {
-                    localNotes[noteIndex].x = x;
-                    localNotes[noteIndex].y = y;
-                }
-            }
-
-            function deleteNote(id) {
-                localNotes = localNotes.filter(n => n.id !== id);
-                renderNotes(); 
-            }
-            
-            // FUNCIÓN DE INICIO DE ARRASTRE
-            function dragStart(e) {
-                // Si el evento vino del botón de borrado, no hacemos nada 
-                if (e.target.classList.contains('delete-btn')) return;
-                // Si es clic del ratón, solo aceptamos el botón principal (left click)
-                if (e.type === "mousedown" && e.button !== 0) return; 
-
-                activeNote = e.target.closest('.sticky-note');
-                if (!activeNote) return;
-
-                isDragging = true;
-                
-                // Obtener coordenadas correctas para mouse o touch
-                const clientX = e.clientX || e.touches[0].clientX;
-                const clientY = e.touches[0].clientY;
-
-                const containerRect = chalkboardContainer.getBoundingClientRect();
-                
-                // Calcular la posición inicial del ratón/dedo relativa a la nota
-                const noteLeft = parseFloat(activeNote.style.left);
-                const noteTop = parseFloat(activeNote.style.top);
-                
-                xOffset = clientX - containerRect.left - noteLeft;
-                yOffset = clientY - containerRect.top - noteTop;
-
-                // Estilo visual de arrastre
-                activeNote.classList.add('shadow-xl', 'ring-4', 'ring-gray-500/50');
-                
-                // Añadir listeners globales para el movimiento
-                document.addEventListener('mousemove', drag);
-                document.addEventListener('mouseup', dragEnd);
-                document.addEventListener('touchmove', drag, { passive: false });
-                document.addEventListener('touchend', dragEnd);
-            }
-
-            // FUNCIÓN DE ARRASTRE
-            function drag(e) {
-                if (!isDragging || !activeNote) return;
-                e.preventDefault(); // Previene el comportamiento por defecto (scrolling en táctil)
-
-                // Obtener coordenadas para mouse o touch
-                const clientX = e.clientX || e.touches[0].clientX;
-                const clientY = e.clientY || e.touches[0].clientY;
-
-                const containerRect = chalkboardContainer.getBoundingClientRect();
-                
-                // Nueva posición de la nota
-                let newX = clientX - containerRect.left - xOffset;
-                let newY = clientY - containerRect.top - yOffset;
-                
-                // Límites de la pizarra
-                const maxX = containerRect.width - activeNote.offsetWidth;
-                const maxY = containerRect.height - activeNote.offsetHeight;
-                
-                // Aplicar límites (No puede salir de la pizarra)
-                newX = Math.max(0, Math.min(newX, maxX));
-                newY = Math.max(0, Math.min(newY, maxY));
-
-                activeNote.style.left = `${newX}px`;
-                activeNote.style.top = `${newY}px`;
-            }
-
-            // FUNCIÓN DE FIN DE ARRASTRE
-            function dragEnd() {
-                if (!isDragging || !activeNote) return;
-
-                isDragging = false;
-                activeNote.classList.remove('shadow-xl', 'ring-4', 'ring-gray-500/50'); 
-                
-                const finalX = parseFloat(activeNote.style.left);
-                const finalY = parseFloat(activeNote.style.top);
-                
-                updateNotePosition(activeNote.dataset.id, finalX, finalY);
-
-                activeNote = null;
-
-                // Eliminar listeners
-                document.removeEventListener('mousemove', drag);
-                document.removeEventListener('mouseup', dragEnd);
-                document.removeEventListener('touchmove', drag);
-                document.removeEventListener('touchend', dragEnd);
-            }
-
-
-            // --- 6. INICIALIZACIÓN Y LISTENERS GENERALES ---
-
-            function setupPizarraListeners() {
-                // Listener para el botón de añadir nota
-                addTaskBtn.addEventListener('click', () => {
-                    const content = taskInput.value.trim();
-                    if (content) {
-                        addNewNote(content, selectedColor);
-                    } else {
-                        mostrarMensaje(T.msg_task_error, 'error');
-                    }
-                });
-
-                // Listener para la selección de color
-                colorSelector.addEventListener('click', (e) => {
-                    if (e.target.dataset.color) {
-                        colorSelector.querySelectorAll('button').forEach(btn => {
-                            btn.classList.remove('border-white', 'border-2', 'border-gray-500');
-                            btn.classList.add('border-transparent');
-                        });
-                        selectedColor = e.target.dataset.color;
-                        e.target.classList.remove('border-transparent');
-                        e.target.classList.add('border-gray-500', 'border-2'); 
-                    }
-                });
-
-                // Inicializar el color seleccionado (por defecto 'yellow')
-                document.querySelector(`[data-color="${selectedColor}"]`).classList.add('border-gray-500', 'border-2');
-
-                // Renderizar notas iniciales (si hay alguna en el array local)
-                renderNotes();
-            }
-
-
-            // --- FUNCIÓN DE TRADUCCIÓN COMPLETA ---
-            function setLanguage(lang) {
-                currentLang = lang;
-                T = translations[currentLang];
-                
-                document.title = T.title;
-                mainTitle.textContent = T.title;
-                
-                document.getElementById('modo-trabajo').textContent = T.mode_trabajo;
-                document.getElementById('modo-corta').textContent = T.mode_corta;
-                document.getElementById('modo-larga').textContent = T.mode_larga;
-
-                const btnIniciarText = estaCorriendo ? T.btn_pausar : (tiempoRestante < tiempos[modoActual] ? T.btn_reanudar : T.btn_iniciar);
-                document.getElementById('btn-iniciar').textContent = btnIniciarText;
-                document.getElementById('btn-reiniciar').textContent = T.btn_reiniciar;
-                document.getElementById('btn-saltar').textContent = T.btn_saltar;
-                
-                const statsElement = document.querySelector('.text-center.text-sm.mb-6.text-gray-600');
-                if (statsElement) {
-                    statsElement.childNodes[0].nodeValue = T.stats_prefix + ' ';
-                    statsElement.childNodes[4].nodeValue = ' | ' + T.stats_suffix + ' ';
-                }
-                
-                // Pizarra y Tareas
-                document.getElementById('task-header-text').textContent = T.task_header;
-                document.getElementById('task-input').placeholder = T.task_input_placeholder;
-                document.getElementById('add-task-btn').textContent = T.add_task_btn || 'Añadir Posit'; // Ajustado si es necesario
-                placeholderText.textContent = T.task_board_placeholder;
-                
-                // Gráfico
-                chartTitle.textContent = T.chart_title;
-
-                // Menus 
-                document.querySelector('#menu-movimiento .menu-toggle').textContent = T.menu_movimiento;
-                document.getElementById('btn-swap-modules').textContent = T.menu_swap;
-                document.querySelector('#menu-colores .menu-toggle').textContent = T.menu_colores;
-                document.querySelector('#menu-idiomas .menu-toggle').textContent = T.menu_idiomas;
-                document.querySelector('#menu-ajustes .menu-toggle').textContent = T.menu_ajustes;
-
-                const modeKey = `mode_${modoActual}_title`;
-                titulo.textContent = T[modeKey.replace('-', '_')];
-                
-                // Re-renderizar el gráfico con los nuevos labels de idioma
-                procesarDatosSemanales();
-
-                mostrarMensaje(T.msg_lang_changed, 'info');
-            }
-
-
-            // --- FUNCIÓN DE CAMBIO DE COLOR DE FONDO ---
-            function cambiarColor(e) {
-                const targetType = e.currentTarget.getAttribute('data-type');
-                
-                if (targetType === 'primary') {
-                    const newColor = e.currentTarget.getAttribute('data-color');
-                    const newShadow = e.currentTarget.getAttribute('data-shadow');
-                    const newHover = e.currentTarget.getAttribute('data-hover');
-                    
-                    document.documentElement.style.setProperty('--primary-color', newColor);
-                    document.documentElement.style.setProperty('--primary-shadow', newShadow);
-                    document.documentElement.style.setProperty('--primary-hover-color', newHover);
-                    
-                    cambiarModo(modoActual); 
-                    // Vuelve a renderizar el gráfico para aplicar el nuevo color de barra
-                    renderizarGraficoSemanal();
-                    mostrarMensaje(T.msg_color_changed.replace('[COLOR]', newColor), 'success');
-
-                } else if (targetType === 'background') {
-                    const key = e.currentTarget.getAttribute('data-bg');
-                    const config = backgroundConfig[key];
-                    currentBgTheme = key; 
-
-                    document.documentElement.style.setProperty('--bg-color', config.bg);
-                    document.documentElement.style.setProperty('--line-v-color', config.lineV);
-                    document.documentElement.style.setProperty('--line-h-color', config.lineH);
-                    document.documentElement.style.setProperty('--card-bg-color', config.cardBg);      
-                    document.documentElement.style.setProperty('--secondary-bg', config.secondaryBg); 
-                    document.documentElement.style.setProperty('--text-color', config.text);         
-                    
-                    // NUEVO: Actualizar el botón secundario (REINICIAR)
-                    document.documentElement.style.setProperty('--secondary-button-bg', config.secondaryBtnBg);
-                    document.documentElement.style.setProperty('--secondary-button-text', config.secondaryBtnText);
-                    
-                    mainTitle.classList.remove('text-gray-800', 'text-gray-300', 'text-gray-700');
-                    mainTitle.classList.add(config.title);
-                    
-                    if (key === 'dark') {
-                         taskInputContainer.classList.add('dark-mode');
-                         placeholderText.classList.remove('text-gray-400');
-                         placeholderText.classList.add('text-white');
-                    } else {
-                         taskInputContainer.classList.remove('dark-mode');
-                         placeholderText.classList.remove('text-white');
-                         placeholderText.classList.add('text-gray-400');
-                    }
-                    
-                    cambiarModo(modoActual); // Vuelve a aplicar estilos a los selectores de modo
-                    renderizarGraficoSemanal(); // Vuelve a renderizar el gráfico para aplicar el color de texto/fondo
-
-                    mostrarMensaje(T.msg_background_changed.replace('[COLOR]', config.name), 'success');
-                }
-
-                e.currentTarget.closest('.dropdown-content').classList.add('hidden');
-            }
-            
-            // --- INICIALIZACIÓN DE LA APP ---
-            document.addEventListener('DOMContentLoaded', () => {
-                
-                // Cargar estado inicial (ciclos y pomodoros diarios)
-                cargarEstado();
-                
-                // Inicializar Pomodoro y UI
-                document.getElementById('input-trabajo').value = (tiempos.trabajo / 60);
-                document.getElementById('input-corta').value = (tiempos.corta / 60);
-                document.getElementById('input-larga').value = (tiempos.larga / 60);
-                
-                setLanguage(currentLang); 
-                
-                // Aplicar el tema 'light' inicial y sus variables CSS
-                const defaultTheme = backgroundConfig.light;
-                document.documentElement.style.setProperty('--bg-color', defaultTheme.bg);
-                document.documentElement.style.setProperty('--line-v-color', defaultTheme.lineV);
-                document.documentElement.style.setProperty('--line-h-color', defaultTheme.lineH);
-                document.documentElement.style.setProperty('--card-bg-color', defaultTheme.cardBg);
-                document.documentElement.style.setProperty('--secondary-bg', defaultTheme.secondaryBg);
-                document.documentElement.style.setProperty('--text-color', defaultTheme.text);
-                document.documentElement.style.setProperty('--secondary-button-bg', defaultTheme.secondaryBtnBg);
-                document.documentElement.style.setProperty('--secondary-button-text', defaultTheme.secondaryBtnText);
-                mainTitle.classList.add(defaultTheme.title);
-
-                cambiarModo('trabajo'); 
-                procesarDatosSemanales(); // Dibuja el gráfico
-
-                // Iniciar Pizarra (Local)
-                setupPizarraListeners();
-
-
-                // Event Listeners del Temporizador
-                document.getElementById('btn-iniciar').addEventListener('click', iniciarTemporizador);
-                document.getElementById('btn-reiniciar').addEventListener('click', () => {
-                    mostrarMensaje(T.msg_cycle_restarted);
-                    cambiarModo(modoActual); 
-                });
-                document.getElementById('btn-saltar').addEventListener('click', () => {
-                    if (modoActual === 'trabajo') {
-                        cambiarModo('corta'); 
-                    } else {
-                        cambiarModo('trabajo'); 
-                    }
-                    mostrarMensaje(T.msg_cycle_skipped);
-                });
-
-                document.getElementById('modo-trabajo').addEventListener('click', () => cambiarModo('trabajo'));
-                document.getElementById('modo-corta').addEventListener('click', () => cambiarModo('corta'));
-                document.getElementById('modo-larga').addEventListener('click', () => cambiarModo('larga'));
-
-                // Event Listeners para Menús
-                menuButtons.forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        e.stopPropagation(); 
-                        const button = e.currentTarget;
-                        const dropdown = button.closest('[id^="menu-"]');
-                        const content = dropdown.querySelector('.dropdown-content');
-
-                        document.querySelectorAll('.dropdown-content').forEach(otherContent => {
-                            if (otherContent !== content) {
-                                otherContent.classList.add('hidden');
-                            }
-                        });
-
-                        content.classList.toggle('hidden');
-                    });
-                });
-
-                colorOptions.forEach(option => {
-                    option.addEventListener('click', cambiarColor);
-                });
-
-                langOptions.forEach(option => {
-                    option.addEventListener('click', (e) => {
-                        setLanguage(e.currentTarget.getAttribute('data-lang'));
-                        e.currentTarget.closest('.dropdown-content').classList.add('hidden');
-                    });
-                });
-
-                document.getElementById('btn-swap-modules').addEventListener('click', () => {
-                    modulesContainer.classList.toggle('lg:flex-row-reverse');
-                    document.getElementById('menu-movimiento').querySelector('.dropdown-content').classList.add('hidden');
-                    
-                    const isReversed = modulesContainer.classList.contains('lg:flex-row-reverse');
-                    const positionText = isReversed ? T.pos_left : T.pos_right;
-                    mostrarMensaje(T.msg_swap.replace('[POSICION]', positionText), 'info');
-                });
-                
-                document.getElementById('btn-aplicar-ajustes').addEventListener('click', () => {
-                    const workMin = parseInt(document.getElementById('input-trabajo').value);
-                    const shortMin = parseInt(document.getElementById('input-corta').value);
-                    const longMin = parseInt(document.getElementById('input-larga').value);
-
-                    if (workMin > 0 && shortMin > 0 && longMin > 0) {
-                        tiempos['trabajo'] = workMin * 60;
-                        tiempos['corta'] = shortMin * 60;
-                        tiempos['larga'] = longMin * 60;
-                        
-                        cambiarModo(modoActual);
-                        
-                        document.getElementById('menu-ajustes').querySelector('.dropdown-content').classList.add('hidden');
-                        mostrarMensaje(T.msg_settings_applied, 'success');
-                    } else {
-                        mostrarMensaje('Error: Las duraciones deben ser mayores a 0.', 'error');
-                    }
-                });
-
-                // Cierra los menús si se hace click fuera
-                document.addEventListener('click', (e) => {
-                    if (!e.target.closest('.relative.inline-block.text-left')) {
-                        document.querySelectorAll('.dropdown-content').forEach(content => {
-                            content.classList.add('hidden');
-                        });
-                    }
+        document.querySelectorAll('nav a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
                 });
             });
-            
-        })(); // Fin de la IIFE
+        });
     </script>
+
 </body>
 </html>
